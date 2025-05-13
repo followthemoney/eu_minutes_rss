@@ -101,12 +101,12 @@ def create_rss_feed(items, feed_title, feed_description, feed_link, output_file)
         # Create a title from the item data
         # Adjust this to use the most appropriate fields from your table
         #title = " - ".join([f"{k}: {v}" for k, v in item.items() if k != 'source_url'][:2])
-        title = f"{item["Directorate"]} - {item["Subject matter"]} - {item["Interest representative(s)"]}"
+        title = f"{item["Directorate"]}. Subject: {item["Subject matter"]}. Representative: {item["Interest representative(s)"]}"
         
         # Create a description that includes all the data
         description = "<br>".join([f"<strong>{k}:</strong> {str(v).strip()}" for k, v in item.items() if k != 'source_url'])
         
-        pub_date = item["parsed_date"]
+        pub_date = item["parsed_date"].date()
         
         feed.add_item(
             title=title,
