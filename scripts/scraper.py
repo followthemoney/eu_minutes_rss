@@ -174,8 +174,8 @@ def main():
     create_rss_feed(
         items=all_items,
         feed_title="Table Data RSS Feed",
-        feed_description="RSS feed generated from tables on multiple websites",
-        feed_link="https://yourusername.github.io/table-scraper-rss/feed.xml",
+        feed_description="RSS feed generated from all the available DG minutes websites",
+        feed_link="https://followthemoney.github.io/eu_minutes_rss/feed.xml",
         output_file="docs/feed.xml"
     )
     
@@ -187,7 +187,7 @@ def main():
     <title>EU minutes RSS Feed</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="alternate" type="application/rss+xml" title="Table Data RSS Feed" href="feed.xml" />
+    <link rel="alternate" type="application/rss+xml" title="EU minutes RSS Feed" href="feed.xml" />
 </head>
 <body>
     <h1>Table Data RSS Feed</h1>
