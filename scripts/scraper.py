@@ -31,14 +31,15 @@ def scrape_table(url):
     
     # Adjust the table selector based on your specific websites
     table = soup.select_one('#listMeetingsTable')
+    directorate = soup.select_one("h3").text.strip().replace("Meetings held by the ", "").replace(" with interest representatives","")
     
     if not table:
         logger.warning(f"No table found at {url}")
         return None
     
-    return parse_table(table, url)
+    return parse_table(table, directorate, url)
 
-def parse_table(table, source_url):
+def parse_table(table, directorate, source_url):
     """Parse the table into a list of dictionaries."""
     rows = table.find_all('tr')
     if not rows:
@@ -56,6 +57,7 @@ def parse_table(table, source_url):
             for i, cell in enumerate(cells):
                 item[headers[i]] = cell.text.strip()
             item['source_url'] = source_url
+            item['Directorate'] = directorate
             items.append(item)
     
     return items
@@ -141,7 +143,7 @@ def main():
     "d41e42be-7ff1-4635-bb4f-e47d38f886ed"
 ]
     
-    urls = [f"https://ec.europa.eu/transparencyinitiative/meetings/meeting.do?host={host}" for host in hosts]
+    urls = [f"https://ec.europa.eu/transparencyinitiative/meetings/meeting.do?host={host}" for host in host_ids]
     
     all_items = []
     
@@ -168,14 +170,14 @@ def main():
         f.write(f'''<!DOCTYPE html>
 <html>
 <head>
-    <title>Table Data RSS Feed</title>
+    <title>EU minutes RSS Feed</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="alternate" type="application/rss+xml" title="Table Data RSS Feed" href="feed.xml" />
 </head>
 <body>
     <h1>Table Data RSS Feed</h1>
-    <p>This page hosts an RSS feed generated from tables scraped from multiple websites.</p>
+    <p>This page hosts an RSS feed generated from all the available DG minutes websites.</p>
     <p>Last updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
     <p><a href="feed.xml">Subscribe to the RSS Feed</a></p>
 </body>
