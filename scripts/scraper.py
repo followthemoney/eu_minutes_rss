@@ -64,6 +64,28 @@ def parse_table(table, directorate, source_url):
 
 def create_rss_feed(items, feed_title, feed_description, feed_link, output_file):
     """Create an RSS feed from the parsed items."""
+    
+    # First, process all dates in your items
+    for item in items:
+        # Parse the date from item["date"] if it exists, or use Unix epoch beginning (very old date) as fallback
+        if "Date" in item and item["Date"]:
+            try:
+                # Parse date in format "DD/MM/YYYY"
+                day, month, year = item["Date"].split('/')
+                # Store the parsed datetime object in the item for sorting
+                item["parsed_date"] = datetime.datetime(int(year), int(month), int(day))
+            except (ValueError, AttributeError) as e:
+                # If date parsing fails, use a very old date for sorting
+                logger.warning(f"Could not parse date '{item.get('Date')}': {e}, using epoch start instead")
+                item["parsed_date"] = datetime.datetime(1970, 1, 1)
+        else:
+            # If no date is available, use a very old date for sorting
+            item["parsed_date"] = datetime.datetime(1970, 1, 1)
+    
+    # Sort items by the parsed_date (newest first)
+    sorted_items = sorted(items, key=lambda x: x["parsed_date"], reverse=True)
+    logger.info(f"Sorted {len(sorted_items)} items by date (newest first)")
+    
     feed = feedgenerator.Rss201rev2Feed(
         title=feed_title,
         link=feed_link,
@@ -81,20 +103,9 @@ def create_rss_feed(items, feed_title, feed_description, feed_link, output_file)
         title = f"{item["Directorate"]} - {item["Subject matter"]} - {item["Interest representative(s)"]}"
         
         # Create a description that includes all the data
-        description = "<br>".join([f"<strong>{k}:</strong> {v.strip()}" for k, v in item.items() if k != 'source_url'])
+        description = "<br>".join([f"<strong>{k}:</strong> {str(v).strip()}" for k, v in item.items() if k != 'source_url'])
         
-        # Parse the date from item["date"] if it exists
-        pub_date = datetime.datetime.now()  # Default fallback date
-        
-        if "Date" in item and item["Date"]:
-            try:
-                # Parse date in format "DD/MM/YYYY"
-                day, month, year = item["Date"].split('/')
-                pub_date = datetime.datetime(int(year), int(month), int(day))
-                logger.info(f"Parsed date: {pub_date} from {item['Date']}")
-            except (ValueError, AttributeError) as e:
-                # If date parsing fails, use current date and log the error
-                logger.warning(f"Could not parse date '{item.get('Date')}': {e}, using current date instead")
+        pub_date = item["parsed_date"]
         
         feed.add_item(
             title=title,
