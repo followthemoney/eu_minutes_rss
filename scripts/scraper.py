@@ -73,14 +73,15 @@ def create_rss_feed(items, feed_title, feed_description, feed_link, output_file)
                 # Parse date in format "DD/MM/YYYY"
                 day, month, year = item["Date"].split('/')
                 # Store the parsed datetime object in the item for sorting
-                item["parsed_date"] = datetime.datetime(int(year), int(month), int(day))
+                # Use zeros for time components to show only the date
+                item["parsed_date"] = datetime.datetime(int(year), int(month), int(day), 0, 0, 0)
             except (ValueError, AttributeError) as e:
                 # If date parsing fails, use a very old date for sorting
                 logger.warning(f"Could not parse date '{item.get('Date')}': {e}, using epoch start instead")
-                item["parsed_date"] = datetime.datetime(1970, 1, 1)
+                item["parsed_date"] = datetime.datetime(1970, 1, 1, 0, 0, 0)
         else:
             # If no date is available, use a very old date for sorting
-            item["parsed_date"] = datetime.datetime(1970, 1, 1)
+            item["parsed_date"] = datetime.datetime(1970, 1, 1, 0, 0, 0)
     
     # Sort items by the parsed_date (newest first)
     sorted_items = sorted(items, key=lambda x: x["parsed_date"], reverse=True)
@@ -93,7 +94,7 @@ def create_rss_feed(items, feed_title, feed_description, feed_link, output_file)
         language="en"
     )
     
-    for item in items:
+    for item in sorted_items:
         # Create a unique ID for each item
         item_id = hashlib.md5(str(item).encode()).hexdigest()
         
