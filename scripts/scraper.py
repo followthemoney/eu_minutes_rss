@@ -77,17 +77,31 @@ def create_rss_feed(items, feed_title, feed_description, feed_link, output_file)
         
         # Create a title from the item data
         # Adjust this to use the most appropriate fields from your table
-        title = " - ".join([f"{k}: {v}" for k, v in item.items() if k != 'source_url'][:2])
+        #title = " - ".join([f"{k}: {v}" for k, v in item.items() if k != 'source_url'][:2])
+        title = f"{item["Directorate"]} - {item["Subject matter"]} - {item["Interest representative(s)"]}"
         
         # Create a description that includes all the data
-        description = "<br>".join([f"<strong>{k}:</strong> {v}" for k, v in item.items() if k != 'source_url'])
+        description = "<br>".join([f"<strong>{k}:</strong> {v.strip()}" for k, v in item.items() if k != 'source_url'])
+        
+        # Parse the date from item["date"] if it exists
+        pub_date = datetime.datetime.now()  # Default fallback date
+        
+        if "Date" in item and item["Date"]:
+            try:
+                # Parse date in format "DD/MM/YYYY"
+                day, month, year = item["Date"].split('/')
+                pub_date = datetime.datetime(int(year), int(month), int(day))
+                logger.info(f"Parsed date: {pub_date} from {item['Date']}")
+            except (ValueError, AttributeError) as e:
+                # If date parsing fails, use current date and log the error
+                logger.warning(f"Could not parse date '{item.get('Date')}': {e}, using current date instead")
         
         feed.add_item(
             title=title,
             link=item['source_url'],
             description=description,
             unique_id=item_id,
-            pubdate=datetime.datetime.now()
+            pubdate=pub_date
         )
     
     with open(output_file, 'w', encoding='utf-8') as f:
